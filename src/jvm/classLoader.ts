@@ -107,7 +107,7 @@ export class ClassLoader {
             return this.loadedClasses[name];
         }
 
-        var res = await fetch("root/" + name + ".class");
+        var res = await fetch("classpath/" + name + ".class");
         var buffer = await res.arrayBuffer();
         var c = this.readClass(buffer);
         this.loadedClasses[name] = c;
