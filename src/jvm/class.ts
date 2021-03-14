@@ -1,5 +1,5 @@
 import { Attribute } from "./attributes";
-import Member from "./member";
+import { Field } from "./field";
 import { Method } from "./method";
 
 export default class Class {
@@ -15,7 +15,7 @@ export default class Class {
     superClassIndex : number = 0;
 
     interfaces : number[] = [];
-    fields : Member[] = [];
+    fields : Field[] = [];
     methods : Method[] = [];
     attributes : Attribute[] = [];
 

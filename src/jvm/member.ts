@@ -3,7 +3,6 @@ import Class from "./class";
 
 export default class Member {
     declaringClass : Class;
-    isMethod : boolean;
 
     accessFlags : number = 0;
     nameIndex : number = 0;
@@ -30,10 +29,9 @@ export default class Member {
         return this.declaringClass.getName() + "." + this.getName() + this.getDescriptor();
     }
 
-    static read(declaringClass, isMethod, reader) : Member {
+    static read(declaringClass, reader) : Member {
         var result = new Member();
         result.declaringClass = declaringClass;
-        result.isMethod = isMethod;
 
         result.accessFlags = reader.readU16();
         result.nameIndex = reader.readU16();

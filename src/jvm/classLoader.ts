@@ -1,9 +1,9 @@
 import Class from "./class";
-import Member from "./member";
 import { Attribute } from "./attributes";
 import BinaryReader from "./binaryReader";
 import Utils from "./utils";
 import { Method } from "./method";
+import { Field } from "./field";
 
 export class ClassLoader {
 
@@ -86,7 +86,7 @@ export class ClassLoader {
 
         var fieldCount = reader.readU16();
         for(var i = 0; i < fieldCount; i++){
-            c.fields.push(Member.read(c, false, reader));
+            c.fields.push(Field.read(c, reader));
         }
 
         var methodCount = reader.readU16();

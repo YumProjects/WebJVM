@@ -8,7 +8,7 @@ export class Method extends Member {
     codeInfo : CodeAttributeInfo;
 
     static read(declaringClass : Class, reader : BinaryReader) : Method {
-        var result = Member.read(declaringClass, true, reader) as Method;
+        var result = Member.read(declaringClass, reader) as Method;
         var codeAttribute = result.findAttribute("Code");
         if(codeAttribute !== undefined){
             result.codeInfo = CodeAttributeInfo.read(codeAttribute);
