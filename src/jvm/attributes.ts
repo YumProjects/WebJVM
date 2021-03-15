@@ -1,5 +1,5 @@
-import BinaryReader from "./binaryReader";
-import Class from "./class";
+import { BinaryReader } from "./binaryReader";
+import { Class } from "./class";
 
 export class Attribute {
     declaringClass : Class;

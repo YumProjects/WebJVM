@@ -3,6 +3,7 @@ export * from "./binaryReader";
 export * from "./class";
 export * from "./classLoader";
 export * from "./field";
+export * from "./frame";
 export * from "./instance";
 export * from "./member";
 export * from "./method";

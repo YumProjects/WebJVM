@@ -1,7 +1,7 @@
 import { Attribute } from "./attributes";
-import Class from "./class";
+import { Class } from "./class";
 
-export default class Member {
+export class Member {
     declaringClass : Class;
 
     accessFlags : number = 0;

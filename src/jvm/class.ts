@@ -2,7 +2,7 @@ import { Attribute } from "./attributes";
 import { Field } from "./field";
 import { Method } from "./method";
 
-export default class Class {
+export class Class {
 
     minorVersion : number = 0;
     majorVersion : number = 0;

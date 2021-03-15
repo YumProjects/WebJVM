@@ -1,7 +1,7 @@
-import Class from "./class";
+import { Class } from "./class";
 import { Attribute } from "./attributes";
-import BinaryReader from "./binaryReader";
-import Utils from "./utils";
+import { BinaryReader } from "./binaryReader";
+import { Utils } from "./utils";
 import { Method } from "./method";
 import { Field } from "./field";
 

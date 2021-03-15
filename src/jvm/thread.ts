@@ -1,27 +1,15 @@
+import { Frame } from "./frame";
 import { Instance } from "./instance";
 import { Method } from "./method";
 import { VM } from "./VM";
 
-export class Frame {
-    thread : Thread;
-    method : Method;
-
-    localVariables : any[] = []
-    pc : number = 0;
-
-    constructor(thread : Thread, method : Method, parameters : any[] = []){
-        this.thread = thread;
-        this.method = method;
-        this.localVariables.push(parameters);
-    }
-}
-
 export enum ThreadState {
-    IDLE = 0,
-    RUNNING = 1,
-    FINISHED = 2,
-    WAITING = 3,
-    BLOCKING = 4
+    NOT_STARTED = 0,
+    IDLE = 1,
+    RUNNING = 2,
+    FINISHED = 3,
+    WAITING = 4,
+    BLOCKING = 5
 }
 
 export class Thread {
@@ -34,14 +22,17 @@ export class Thread {
 
     stack : any[] = [];
 
-    heldMonitors : Instance[] = [];
+    name : string;
+
+    heldMonitors : Map<Instance, number> = new Map<Instance, number>();
     waitInstance : Instance;
 
-    constructor(vm : VM){
+    constructor(vm : VM, name : string){
         this.vm = vm;
+        this.name = name;
     }
 
-    invoke(method : Method, parameters : any[] = []){
+    enterFrame(method : Method, parameters : any[] = []){
         if(this.currentFrame !== undefined){
             this.frameStack.push(this.currentFrame);
         }
@@ -49,48 +40,80 @@ export class Thread {
         this.state = ThreadState.RUNNING;
     }
 
-    invokeVirtual(instance : Instance, method : Method, paramters : any[] = []){
-        var _params = [];
-        _params.push(instance);
-        _params.push(paramters);
-        this.invoke(method, _params);
+    exitFrame(){
+        if(this.frameStack.length === 0){
+            this.state = ThreadState.FINISHED;
+        }
+        else{
+            this.currentFrame = this.frameStack.pop();
+        }
     }
 
-    wait(instance : Instance){
-        this.waitInstance = instance;
-        this.state = ThreadState.WAITING;
-        this.waitInstance.monitorEnter(this);
+    isAlive() : boolean {
+        return this.state !== ThreadState.NOT_STARTED && this.state !== ThreadState.FINISHED;
     }
-    
-    release(instance : Instance) {
-        instance.monitorExit(this);
-        if(instance === this.waitInstance) {
+
+    sleep(ms) : void {
+        if(this.state !== ThreadState.RUNNING){
+            throw new Error("Thread must be in the RUNNING state in order to sleep.");
+        }
+        this.state = ThreadState.IDLE;
+        setTimeout(function(thread : Thread) {
+            thread.state = ThreadState.RUNNING;
+        }, ms, this);
+    }
+
+    private aquireMonitor(instance : Instance) : void {
+        instance.monitorOwner = this;
+        this.waitInstance = undefined;
+        this.state = ThreadState.RUNNING;
+        if(this.heldMonitors.has(instance)){
+            var value = this.heldMonitors.get(instance);
+            this.heldMonitors.set(instance, value + 1);
+        }
+        else{
+            this.heldMonitors.set(instance, 1);
+        }
+    }
+
+    monitorEnter(instance : Instance) : void {
+        if(this.state !== ThreadState.RUNNING){
+            throw new Error("Thread must be in the RUNNING state in order to enter a monitor.");
+        }
+
+        if(instance.monitorOwner === undefined || instance.monitorOwner === this){
+            this.aquireMonitor(instance);
+        }
+        else{
+            this.waitInstance = instance;
+            this.state = ThreadState.WAITING;
+        }
+    }
+
+    monitorExit(instance : Instance) : void {
+        if(this.heldMonitors.has(instance)){
+            var value = this.heldMonitors.get(instance);
+            if(value > 1){
+                this.heldMonitors.set(instance, value - 1);
+            }
+            else{
+                this.state = ThreadState.RUNNING;
+                this.heldMonitors.delete(instance);
+                if(instance.monitorOwner === this){
+                    instance.monitorOwner = undefined;
+                }
+            }
+        }
+        else if(this.waitInstance === instance){
+            this.state = ThreadState.RUNNING;
             this.waitInstance = undefined;
         }
-        else {
-            var index = this.heldMonitors.indexOf(instance);
-            if(index >= 0){
-                this.heldMonitors.splice(index, 1);
-            }
-        }
-        this.state = ThreadState.RUNNING;
-    }
-
-    waitFor(instance : Instance, ms : number){
-        this.wait(instance);
-        setTimeout(function(thread : Thread) {
-            if(instance === thread.waitInstance){
-                thread.release(instance);
-            }
-        }, ms, this);
     }
 
     cycle(){
         if(this.state === ThreadState.WAITING){
-            if(this.waitInstance.isOwner(this)){
-                this.heldMonitors.push(this.waitInstance);
-                this.state = ThreadState.RUNNING;
-                this.waitInstance = undefined;
+            if(this.waitInstance.monitorOwner === undefined){
+                this.aquireMonitor(this.waitInstance);
             }
             else{
                 return;
@@ -98,7 +121,7 @@ export class Thread {
         }
 
         if(this.state === ThreadState.RUNNING){
-            
+            this.currentFrame.cycle();
         }
     }
 }

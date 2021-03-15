@@ -7,8 +7,8 @@ export class VM {
         this.threads = [];
     }
 
-    createThread() : Thread {
-        var t = new Thread(this);
+    createThread(name : string) : Thread {
+        var t = new Thread(this, name);
         this.threads.push(t);
         return t;
     }

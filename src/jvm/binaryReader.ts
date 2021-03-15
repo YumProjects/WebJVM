@@ -1,4 +1,4 @@
-export default class BinaryReader {
+export class BinaryReader {
 
     buffer : ArrayBuffer;
     dataView : DataView;
