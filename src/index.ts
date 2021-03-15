@@ -1,4 +1,5 @@
 import * as webJVM from "./jvm";
+import { Utils } from "./jvm";
 
 // Create a new instance of the VM.
 var vm = new webJVM.VM();
@@ -8,13 +9,13 @@ var mainThread : webJVM.Thread = vm.createThread("Main Thread");
 
 /* Load the main class 'org/benhess/Main' (in java: 'org.benhess.Main').
    The class file will be fetched from the server's root + '/classpath/org/benhess/Main.class'. */
-webJVM.ClassLoader.loadClass("org/benhess/Main").then((mainClass : webJVM.Class) => {
+webJVM.ClassLoader.loadClass(mainThread, "org/benhess/Main").then((mainClass : webJVM.Class) => {
 
     // Find the a method called "main" in the main.
     var mainMethod : webJVM.Method = mainClass.findMethod("main");
 
-    // Call the main method on the main thread by creating a frame of it.
-    mainThread.enterFrame(mainMethod);
+    // Call the main method on the main thread by invoking a new frame.
+    mainThread.invokeNewFrame(mainMethod);
 });
 
 

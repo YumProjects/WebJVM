@@ -4,6 +4,7 @@ import { BinaryReader } from "./binaryReader";
 import { Utils } from "./utils";
 import { Method } from "./method";
 import { Field } from "./field";
+import { Thread, ThreadState } from "./thread";
 
 export class ClassLoader {
 
@@ -102,26 +103,29 @@ export class ClassLoader {
         return c;
     }
 
-    static async loadClass(name) : Promise<Class> {
-        if(this.loadedClasses[name] !== undefined){
-            return this.loadedClasses[name];
+    static async loadClass(thread : Thread, name : string) : Promise<Class> {
+        var loadedClass : Class;
+
+        if(this.loadedClasses[name] === undefined){
+            thread.state = ThreadState.BLOCKING;
+
+            var res = await fetch("classpath/" + name + ".class");
+            var buffer = await res.arrayBuffer();
+            loadedClass = this.readClass(buffer);
+            this.loadedClasses[name] = loadedClass;
+
+            var clinit : Method = loadedClass.findMethod("<clinit>", "V()");
+
+            if(clinit !== undefined){
+                await thread.invokeNewFrame(clinit);
+            }
+
+            Utils.log("Loaded class '" + loadedClass.getName() + "'.");
+        }
+        else {
+            loadedClass = this.loadedClasses[name];
         }
 
-        var res = await fetch("classpath/" + name + ".class");
-        var buffer = await res.arrayBuffer();
-        var c = this.readClass(buffer);
-        this.loadedClasses[name] = c;
-
-        Utils.log("Loaded class '" + c.getName() + "'.");
-
-        var clinit : Method = c.findMethod("<clinit>", "()V");
-
-        var init : Method = c.findMethod("<init>");
-
-        Utils.log("Class init: " + clinit);
-
-        Utils.log("Constructor: " + init);
-
-        return c;
+        return loadedClass;
     }
 }

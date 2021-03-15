@@ -25,12 +25,36 @@ export class Member {
         }
     }
 
+    isPublic() : boolean {
+        return (this.accessFlags & 0x0001) > 0;
+    }
+
+    isPrivate() : boolean {
+        return (this.accessFlags & 0x0002) > 0;
+    }
+
+    isProtected() : boolean {
+        return (this.accessFlags & 0x0004) > 0;
+    }
+
+    isStatic() : boolean {
+        return (this.accessFlags & 0x0008) > 0;
+    }
+
+    isFinal() : boolean {
+        return (this.accessFlags & 0x0010) > 0;
+    }
+
+    isSynthetic() : boolean {
+        return (this.accessFlags & 0x1000) > 0;
+    }
+
     toString() : string {
         return this.declaringClass.getName() + "." + this.getName() + this.getDescriptor();
     }
 
     static read(declaringClass, reader) : Member {
-        var result = new Member();
+        var result : Member = new Member();
         result.declaringClass = declaringClass;
 
         result.accessFlags = reader.readU16();

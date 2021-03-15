@@ -2,7 +2,7 @@ export class BinaryReader {
 
     buffer : ArrayBuffer;
     dataView : DataView;
-    index : number = 0;
+    position : number = 0;
 
     constructor(buffer : ArrayBuffer){
         this.buffer = buffer;
@@ -14,18 +14,18 @@ export class BinaryReader {
     }
 
     readS8() : number {
-        this.index += 1;
-        return this.dataView.getInt8(this.index - 1);
+        this.position += 1;
+        return this.dataView.getInt8(this.position - 1);
     }
 
     readS16() : number {
-        this.index += 2;
-        return this.dataView.getInt16(this.index - 2, false);
+        this.position += 2;
+        return this.dataView.getInt16(this.position - 2, false);
     }
 
     readS32() : number {
-        this.index += 4;
-        return this.dataView.getInt32(this.index - 4, false);
+        this.position += 4;
+        return this.dataView.getInt32(this.position - 4, false);
     }
 
     readS64() : number {
@@ -35,18 +35,18 @@ export class BinaryReader {
     }
 
     readU8() : number {
-        this.index += 1;
-        return this.dataView.getUint8(this.index - 1);
+        this.position += 1;
+        return this.dataView.getUint8(this.position - 1);
     }
 
     readU16() : number {
-        this.index += 2;
-        return this.dataView.getUint16(this.index - 2, false);
+        this.position += 2;
+        return this.dataView.getUint16(this.position - 2, false);
     }
 
     readU32() : number {
-        this.index += 4;
-        return this.dataView.getUint32(this.index - 4, false);
+        this.position += 4;
+        return this.dataView.getUint32(this.position - 4, false);
     }
 
     readU64() : number {
@@ -54,13 +54,13 @@ export class BinaryReader {
     }
 
     readFloat() : number  {
-        this.index += 4;
-        return this.dataView.getFloat32(this.index - 4, false);
+        this.position += 4;
+        return this.dataView.getFloat32(this.position - 4, false);
     }
 
     readDouble() : number {
-        this.index += 8;
-        return this.dataView.getFloat64(this.index - 8, false);
+        this.position += 8;
+        return this.dataView.getFloat64(this.position - 8, false);
     }
 
     readBytes(length : number) : number[] {

@@ -1,6 +1,8 @@
 import { Frame } from "./frame";
 import { Instance } from "./instance";
 import { Method } from "./method";
+import { Utils } from "./utils";
+import { JValue } from "./value";
 import { VM } from "./VM";
 
 export enum ThreadState {
@@ -15,12 +17,12 @@ export enum ThreadState {
 export class Thread {
     vm : VM;
 
-    state : ThreadState = ThreadState.IDLE;
+    state : ThreadState = ThreadState.NOT_STARTED;
 
     frameStack : Frame[] = [];
     currentFrame : Frame;
 
-    stack : any[] = [];
+    stack : JValue[] = [];
 
     name : string;
 
@@ -32,17 +34,45 @@ export class Thread {
         this.name = name;
     }
 
-    enterFrame(method : Method, parameters : any[] = []){
-        if(this.currentFrame !== undefined){
-            this.frameStack.push(this.currentFrame);
+    stop() : void {
+        this.state = ThreadState.FINISHED;
+        this.heldMonitors.forEach((value, key, map) => {
+            if(key.monitorOwner === this){
+                key.monitorOwner = undefined;
+            }
+        });
+        this.heldMonitors.clear();
+        Utils.log("Thread '" + this.name + "' exited.");
+    }
+
+    invokeNewFrame(method : Method, parameters : JValue[] = []) : Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            if(this.currentFrame !== undefined){
+                this.frameStack.push(this.currentFrame);
+            }
+            else{
+                Utils.log("Started thread '" + this.name + "'.");
+            }
+            this.currentFrame = new Frame(this, method, parameters, resolve);
+            this.state = ThreadState.RUNNING;
+        });
+    }
+
+    async invokeStatic(method : Method, parameters : JValue[] = []) : Promise<void> {
+        if(method.isNative()){
+            Utils.log("Invoked native method " + method.toString());
         }
-        this.currentFrame = new Frame(this, method, parameters);
-        this.state = ThreadState.RUNNING;
+        else{
+            await this.invokeNewFrame(method, parameters);
+        }
     }
 
     exitFrame(){
+        if(this.state == ThreadState.FINISHED){
+            return;
+        }
         if(this.frameStack.length === 0){
-            this.state = ThreadState.FINISHED;
+            this.stop();
         }
         else{
             this.currentFrame = this.frameStack.pop();

@@ -35,7 +35,7 @@ export class Class {
         }
     }
 
-    findMethod(name : string, descriptor : string = undefined){
+    findMethod(name : string, descriptor : string = undefined) : Method {
         for(var i = 0; i < this.methods.length; i++){
             if(this.methods[i].getName() === name){
                 if(descriptor === undefined || descriptor === this.methods[i].getDescriptor()){
